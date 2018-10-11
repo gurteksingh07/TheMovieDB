@@ -1,7 +1,10 @@
 package com.example.gurteksingh.themoviedb;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.SharedMemory;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -15,6 +18,7 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.github.ivbaranov.mfb.MaterialFavoriteButton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,8 +44,9 @@ public class MovieActivity extends AppCompatActivity {
     private TextView reviewsLabel;
     private MoviesRepository moviesRepository;
     private int movieId;
+    private MaterialFavoriteButton materialFavoriteButton;
     private  TextView castsLabel;
-
+    private SharedPreferences sharedPreferences;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,6 +86,17 @@ public class MovieActivity extends AppCompatActivity {
         trailersLabel = findViewById(R.id.trailersLabel);
         reviewsLabel = findViewById(R.id.reviewsLabel);
         castsLabel =findViewById(R.id.castLabels);
+        materialFavoriteButton=findViewById(R.id.favorite);
+        sharedPreferences= PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        materialFavoriteButton.setOnFavoriteChangeListener(
+                new MaterialFavoriteButton.OnFavoriteChangeListener() {
+                    @Override
+                    public void onFavoriteChanged(MaterialFavoriteButton buttonView, boolean favorite) {
+
+                    }
+                }
+        );
+
     }
 
     private void getMovie() {
