@@ -60,4 +60,19 @@ public interface TMDbApi {
             @Query("api_key") String apiKEy,
             @Query("language") String language
     );
+
+    @GET("movie/{movie_id}/credits")
+    Call<CastResponse> getCasts(
+            @Path("movie_id") int id,
+            @Query("api_key") String apiKey,
+            @Query("language") String language
+    );
+
+    @GET("search/movie")
+    Call<MoviesResponse> getSearch(
+            @Query("api_key") String apiKey,
+            @Query("query") String query,
+            @Query("language") String language,
+            @Query("page") int page
+    );
 }

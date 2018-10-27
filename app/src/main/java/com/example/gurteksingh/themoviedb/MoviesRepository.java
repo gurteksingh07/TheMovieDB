@@ -179,4 +179,54 @@ public class MoviesRepository {
                     }
                 });
     }
+
+    public void getCasts(int movieId, final OnGetsCastsCallback callback) {
+        api.getCasts(movieId,TMDB_API_KEY, LANGUAGE)
+                .enqueue(new Callback<CastResponse>() {
+                    @Override
+                    public void onResponse(Call<CastResponse> call, Response<CastResponse> response) {
+                        if (response.isSuccessful()) {
+                            CastResponse castResponse = response.body();
+                            if (castResponse != null && castResponse.getCasts() != null) {
+                                callback.onSuccess(castResponse.getCasts());
+                            } else {
+                                callback.onError();
+                            }
+                        } else {
+                            callback.onError();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<CastResponse> call, Throwable t) {
+                        callback.onError();
+                    }
+                });
+
+    }
+
+    public void getMovieSearch(int page,String query, final OnGetMoviesCallback callback) {
+        api.getSearch(TMDB_API_KEY,query,LANGUAGE, page)
+                .enqueue(new Callback<MoviesResponse>() {
+                    @Override
+                    public void onResponse(Call<MoviesResponse> call, Response<MoviesResponse> response) {
+                        if (response.isSuccessful()) {
+                            MoviesResponse moviesResponse = response.body();
+                            if (moviesResponse != null && moviesResponse.getMovies() != null) {
+                                callback.onSuccess(moviesResponse.getPage(), moviesResponse.getMovies());
+                            } else {
+                                callback.onError();
+                            }
+                        } else {
+                            callback.onError();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<MoviesResponse> call, Throwable t) {
+                        callback.onError();
+                    }
+                });
+
+    }
 }

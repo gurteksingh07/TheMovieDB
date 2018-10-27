@@ -5,9 +5,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.PopupMenu;
 import android.widget.Toast;
@@ -26,6 +28,8 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean isFetchingMovies;
     private int currentPage = 1;
+    int flag = 0;
+    String q;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,7 +46,36 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_movies, menu);
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.menu.menu_movies, menu);
+
+        MenuItem searchItem = menu.findItem(R.id.search);
+
+        SearchView searchView = (SearchView) searchItem.getActionView();
+        searchView.setQueryHint("Search...");
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+
+                flag =1;
+                currentPage =1;
+                q = query;
+                getSearch(currentPage,query);
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+
+                flag =1;
+                q = newText;
+                currentPage=1;
+                getSearch(currentPage,newText);
+                return false;
+
+            }
+        });
+
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -105,8 +138,13 @@ public class MainActivity extends AppCompatActivity {
                 int firstVisibleItem = manager.findFirstVisibleItemPosition();
 
                 if (firstVisibleItem + visibleItemCount >= totalItemCount / 2) {
-                    if (!isFetchingMovies) {
+                    if (!isFetchingMovies && flag == 0) {
                         getMovies(currentPage + 1);
+                    }
+                    else
+                    if (!isFetchingMovies && flag == 1)
+                    {
+                        getSearch(currentPage + 1,q);
                     }
                 }
             }
@@ -182,6 +220,35 @@ public class MainActivity extends AppCompatActivity {
                 setTitle(getString(R.string.now_playing));
                 break;
         }
+    }
+
+    private void getSearch(int page, final String query) {
+        isFetchingMovies=true;
+        moviesRepository.getMovieSearch(page ,query,new OnGetMoviesCallback() {
+
+            @Override
+            public void onSuccess(int page,List<Movie> movies) {
+                Log.d("MoviesRepository", "Current Page = " + page);
+                if (adapter == null) {
+                    adapter = new MoviesAdapter(movies, movieGenres ,callback);
+                    moviesList.setAdapter(adapter);
+                } else {
+                    if(page==1)
+                    {
+                        adapter.clearMovies();
+                    }
+                    adapter.appendMovies(movies);
+                }
+                currentPage = page;
+                isFetchingMovies = false;
+                setTitle(query);
+            }
+
+            @Override
+            public void onError() {
+                // Do Nothing
+            }
+        });
     }
     }
 
