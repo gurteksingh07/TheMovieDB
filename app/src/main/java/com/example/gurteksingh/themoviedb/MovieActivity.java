@@ -15,6 +15,8 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.example.gurteksingh.themoviedb.data.FavouriteDBHelper;
+import com.github.ivbaranov.mfb.MaterialFavoriteButton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +27,7 @@ public class MovieActivity extends AppCompatActivity {
 
     private static String YOUTUBE_VIDEO_URL = "http://www.youtube.com/watch?v=%s";
     private static String YOUTUBE_THUMBNAIL_URL = "http://img.youtube.com/vi/%s/0.jpg";
+    private static String POSTER_URL = "https://image.tmdb.org/t/p/w185";
 
     private ImageView movieBackdrop;
     private TextView movieTitle;
@@ -39,6 +42,9 @@ public class MovieActivity extends AppCompatActivity {
     private LinearLayout movieCasts;
     private TextView reviewsLabel;
     private TextView castsLabel;
+    FavouriteDBHelper favouriteDBHelper;
+    private Movie favourite;
+    MaterialFavoriteButton materialFavoriteButton;
     private MoviesRepository moviesRepository;
     private int movieId;
 
@@ -81,12 +87,13 @@ public class MovieActivity extends AppCompatActivity {
         trailersLabel = findViewById(R.id.trailersLabel);
         castsLabel =findViewById(R.id.castLabels);
         reviewsLabel = findViewById(R.id.reviewsLabel);
+        materialFavoriteButton =  findViewById(R.id.favourite);
     }
 
     private void getMovie() {
         moviesRepository.getMovie(movieId, new OnGetMovieCallback() {
             @Override
-            public void onSuccess(Movie movie) {
+            public void onSuccess(final Movie movie) {
                 movieTitle.setText(movie.getTitle());
                 movieOverviewLabel.setVisibility(View.VISIBLE);
                 movieOverview.setText(movie.getOverview());
@@ -96,6 +103,47 @@ public class MovieActivity extends AppCompatActivity {
                 getTrailers(movie);
                 getReviews(movie);
                 getCasts(movie);
+                Boolean flag = isFavourite(movie);
+                if(flag) {
+                    materialFavoriteButton.setFavorite(true);
+                    materialFavoriteButton.setOnFavoriteChangeListener(new MaterialFavoriteButton.OnFavoriteChangeListener() {
+                        @Override
+                        public void onFavoriteChanged(MaterialFavoriteButton buttonView, boolean favorite) {
+                            if (favorite==true) {
+
+                                Toast.makeText(MovieActivity.this, "Added to Favourites", Toast.LENGTH_SHORT).show();
+                                movie.setFavouriteflag(true);
+                                saveFavourite(movie);
+
+                            } else {
+                                Toast.makeText(MovieActivity.this, "Removed From Favourites", Toast.LENGTH_SHORT).show();
+                                movie.setFavouriteflag(false);
+                                favouriteDBHelper = new FavouriteDBHelper(MovieActivity.this);
+                                favouriteDBHelper.deleteFavourite(movie.getId());
+                            }
+                        }
+                    });
+                }
+                else {
+                    materialFavoriteButton.setOnFavoriteChangeListener(new MaterialFavoriteButton.OnFavoriteChangeListener() {
+                        @Override
+                        public void onFavoriteChanged(MaterialFavoriteButton buttonView, boolean favorite) {
+                            if (favorite==true) {
+
+                                Toast.makeText(MovieActivity.this, "Added to Favourites", Toast.LENGTH_SHORT).show();
+                                movie.setFavouriteflag(true);
+                                saveFavourite(movie);
+                            }
+                            else {
+                                Toast.makeText(MovieActivity.this, "Removed From Favourites", Toast.LENGTH_SHORT).show();
+                                movie.setFavouriteflag(false);
+                                favouriteDBHelper = new FavouriteDBHelper(MovieActivity.this);
+                                favouriteDBHelper.deleteFavourite(movie.getId());
+
+                            }
+                        }
+                    });
+                }
                 movieReleaseDate.setText(movie.getReleaseDate());
                 if (!isFinishing()) {
                     Glide.with(MovieActivity.this)
@@ -221,6 +269,48 @@ public class MovieActivity extends AppCompatActivity {
                 // Do nothing
             }
         });
+    }
+
+    public Boolean isFavourite(Movie movie)
+    {
+        int f = 0;
+        List<Movie> movies = new ArrayList<>();
+        favouriteDBHelper = new FavouriteDBHelper(MovieActivity.this);
+        movies.addAll(favouriteDBHelper.getAllFavourite());
+        if(movies.isEmpty() || movies== null)
+        {
+            return false;
+        }
+        else {
+            for (Movie m : movies) {
+                if (m.getId() == movie.getId()) {
+                    f = 1;
+                    break;
+                }
+            }
+            if (f == 1)
+                return true;
+            else
+                return false;
+        }
+    }
+
+    public void saveFavourite(Movie movie)
+    {
+        favouriteDBHelper = new FavouriteDBHelper(MovieActivity.this);
+        favourite = new Movie();
+        int movie_id = movie.getId();
+        String rate = String.valueOf(movie.getRating());
+        String poster = movie.getPosterPath();
+
+        favourite.setId(movie_id);
+        favourite.setTitle(movie.getTitle());
+        favourite.setPosterPath(poster);
+        favourite.setRating(Float.parseFloat(rate));
+        favourite.setReleaseDate(movie.getReleaseDate());
+        favourite.setOverview(movie.getOverview());
+        favourite.setFavouriteflag(true);
+        favouriteDBHelper.addFavourite(favourite);
     }
 
     private void showTrailer(String url) {

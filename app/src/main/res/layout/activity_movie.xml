@@ -52,9 +52,27 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
+            <com.github.ivbaranov.mfb.MaterialFavoriteButton
+                android:id="@+id/favourite"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_marginLeft="300dp"
+                android:layout_marginTop="10dp"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="@+id/movieDetailsTitle"
+                app:layout_constraintTop_toTopOf="parent"
+                app:mfb_animate_favorite="true"
+                app:mfb_animate_unfavorite="false"
+                app:mfb_bounce_duration="300"
+                app:mfb_favorite_image="@drawable/favourite"
+                app:mfb_not_favorite_image="@drawable/favborder"
+                app:mfb_rotation_angle="360"
+                app:mfb_rotation_duration="400" />
+
             <TextView
                 android:id="@+id/movieDetailsTitle"
-                android:layout_width="0dp"
+                android:layout_width="290dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="16dp"
                 android:layout_marginLeft="16dp"

@@ -11,30 +11,40 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.PopupMenu;
 import android.widget.Toast;
 
 
+import com.example.gurteksingh.themoviedb.data.FavouriteDBHelper;
+
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    private RecyclerView moviesList;
+    private RecyclerView moviesList,list;
     private MoviesAdapter adapter;
+    private FavMovieAdapter fadapter;
     private MoviesRepository moviesRepository;
     private List<Genre> movieGenres;
     private String sortBy = MoviesRepository.POPULAR;
     Toolbar toolbar;
 
     private boolean isFetchingMovies;
+    private FavouriteDBHelper favouriteDBHelper;
     private int currentPage = 1;
     int flag = 0;
+    private SearchView searchView;
+    List<Movie> favmovies,fmovies;
+    private  MenuItem searchItem,mitem;
     String q;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         toolbar = (Toolbar)findViewById(R.id.toolbar);
+        favmovies = new ArrayList<>();
         setSupportActionBar(toolbar);
         moviesRepository = MoviesRepository.getInstance();
         moviesList = findViewById(R.id.movies_list);
@@ -45,13 +55,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStart() {
+        favouriteDBHelper = new FavouriteDBHelper(MainActivity.this);
+        fmovies = new ArrayList<>();
+        fmovies.clear();
+        fmovies.addAll(favouriteDBHelper.getAllFavourite());
+        super.onStart();
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater menuInflater = getMenuInflater();
         menuInflater.inflate(R.menu.menu_movies, menu);
 
-        MenuItem searchItem = menu.findItem(R.id.search);
+        searchItem = menu.findItem(R.id.search);
+        mitem = menu.findItem(R.id.sort);
 
-        SearchView searchView = (SearchView) searchItem.getActionView();
+        searchView = (SearchView) searchItem.getActionView();
         searchView.setQueryHint("Search...");
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -117,6 +137,9 @@ public class MainActivity extends AppCompatActivity {
                             sortBy = MoviesRepository.NOW_PLAYING;
                             getMovies(currentPage);
                             return true;
+                        case R.id.favourites:
+                            flag =2;
+                            getFavourites(currentPage);
                         default:
                             return false;
                     }
@@ -126,6 +149,16 @@ public class MainActivity extends AppCompatActivity {
             sortMenu.show();
         }
 
+    @Override
+    public void onBackPressed() {
+        if(flag ==2)
+        {
+            startActivity(new Intent(MainActivity.this,MainActivity.class));
+        }
+        else {
+            super.onBackPressed();
+        }
+    }
 
     private void setupOnScrollListener() {
         final LinearLayoutManager manager = new LinearLayoutManager(this);
@@ -137,15 +170,18 @@ public class MainActivity extends AppCompatActivity {
                 int visibleItemCount = manager.getChildCount();
                 int firstVisibleItem = manager.findFirstVisibleItemPosition();
 
-                if (firstVisibleItem + visibleItemCount >= totalItemCount / 2) {
-                    if (!isFetchingMovies && flag == 0) {
-                        getMovies(currentPage + 1);
-                    }
-                    else
-                    if (!isFetchingMovies && flag == 1)
-                    {
-                        getSearch(currentPage + 1,q);
-                    }
+                if (!isFetchingMovies && flag == 0) {
+                    getMovies(currentPage + 1);
+                }
+                else
+                if (!isFetchingMovies && flag == 1)
+                {
+                    getSearch(currentPage + 1,q);
+                }
+                else
+                if(!isFetchingMovies && flag == 2)
+                {
+                    getFavourites(currentPage +1);
                 }
             }
         });
@@ -220,6 +256,32 @@ public class MainActivity extends AppCompatActivity {
                 setTitle(getString(R.string.now_playing));
                 break;
         }
+    }
+
+    public void getFavourites(int page) {
+        searchView.setVisibility(View.GONE);
+        searchItem.setVisible(false);
+        mitem.setVisible(false);
+        isFetchingMovies=true;
+        list = findViewById(R.id.movies_list);
+        setTitle("Favourites");
+        if(fadapter==null) {
+            fadapter = new FavMovieAdapter(favmovies, callback);
+            list.setAdapter(fadapter);
+        }
+        else {
+            if(page==1)
+            {
+                fadapter.clearMovies();
+            }
+            fadapter.appendMovies(favmovies);
+        }
+        currentPage = page;
+        isFetchingMovies = false;
+        favouriteDBHelper = new FavouriteDBHelper(MainActivity.this);
+        favmovies.clear();
+        favmovies.addAll(favouriteDBHelper.getAllFavourite());
+
     }
 
     private void getSearch(int page, final String query) {

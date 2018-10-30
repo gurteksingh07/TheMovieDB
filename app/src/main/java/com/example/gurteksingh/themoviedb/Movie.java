@@ -43,6 +43,16 @@ public class Movie {
     @Expose
     private List<Genre> genres;
 
+    private boolean favouriteflag;
+
+    public boolean isFavouriteflag() {
+        return favouriteflag;
+    }
+
+    public void setFavouriteflag(boolean favouriteflag) {
+        this.favouriteflag = favouriteflag;
+    }
+
     public int getId() {
         return id;
     }
@@ -60,7 +70,7 @@ public class Movie {
     }
 
     public String getPosterPath() {
-        return "https://image.tmdb.org/t/p/w185"+ posterPath;
+        return  posterPath;
 }
 
     public void setPosterPath(String posterPath) {

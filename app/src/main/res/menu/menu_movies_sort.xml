@@ -23,4 +23,11 @@
         android:title="Now Playing"
         app:showAsAction="never" />
 
+    <item
+        android:id="@+id/favourites"
+        android:enabled="true"
+        android:title="Favourites"
+        app:showAsAction="never" />
+
+
 </menu>
